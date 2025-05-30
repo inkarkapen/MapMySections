@@ -1,0 +1,105 @@
+subclass,index
+001 CLA-EPd-CTX Car3 Glut,0
+002 IT EP-CLA Glut,1
+003 L5/6 IT TPE-ENT Glut,2
+004 L6 IT CTX Glut,3
+005 L5 IT CTX Glut,4
+006 L4/5 IT CTX Glut,5
+007 L2/3 IT CTX Glut,6
+008 L2/3 IT ENT Glut,7
+009 L2/3 IT PIR-ENTl Glut,8
+010 IT AON-TT-DP Glut,9
+011 L2 IT ENT-po Glut,10
+012 MEA Slc17a7 Glut,11
+013 COAp Grxcr2 Glut,12
+014 LA-BLA-BMA-PA Glut,13
+015 ENTmv-PA-COAp Glut,14
+016 CA1-ProS Glut,15
+017 CA3 Glut,16
+018 L2 IT PPP-APr Glut,17
+019 L2/3 IT PPP Glut,18
+020 L2/3 IT RSP Glut,19
+021 L4 RSP-ACA Glut,20
+022 L5 ET CTX Glut,21
+023 SUB-ProS Glut,22
+024 L5 PPP Glut,23
+025 CA2-FC-IG Glut,24
+027 L6b EPd Glut,25
+028 L6b/CT ENT Glut,26
+029 L6b CTX Glut,27
+030 L6 CT CTX Glut,28
+031 CT SUB Glut,29
+032 L5 NP CTX Glut,30
+033 NP SUB Glut,31
+034 NP PPP Glut,32
+035 OB Eomes Ms4a15 Glut,33
+036 HPF CR Glut,34
+037 DG Glut,35
+038 DG-PIR Ex IMN,36
+039 OB Meis2 Thsd7b Gaba,37
+041 OB-in Frmd7 Gaba,38
+042 OB-out Frmd7 Gaba,39
+043 OB-mi Frmd7 Gaba,40
+044 OB Dopa-Gaba,41
+045 OB-STR-CTX Inh IMN,42
+046 Vip Gaba,43
+047 Sncg Gaba,44
+048 RHP-COA Ndnf Gaba,45
+049 Lamp5 Gaba,46
+050 Lamp5 Lhx6 Gaba,47
+051 Pvalb chandelier Gaba,48
+052 Pvalb Gaba,49
+053 Sst Gaba,50
+054 STR Prox1 Lhx6 Gaba,51
+055 STR Lhx8 Gaba,52
+056 Sst Chodl Gaba,53
+057 NDB-SI-MA-STRv Lhx8 Gaba,54
+058 PAL-STR Gaba-Chol,55
+061 STR D1 Gaba,56
+062 STR D2 Gaba,57
+063 STR D1 Sema5a Gaba,58
+064 STR-PAL Chst9 Gaba,59
+065 IA Mgp Gaba,60
+066 NDB-SI-ant Prdm12 Gaba,61
+067 LSX Sall3 Pax6 Gaba,62
+070 LSX Prdm12 Slit2 Gaba,63
+071 LSX Prdm12 Zeb2 Gaba,64
+073 MEA-BST Sox6 Gaba,65
+075 MEA-BST Lhx6 Nr2e1 Gaba,66
+080 CEA-AAA-BST Six3 Sp9 Gaba,67
+082 CEA-BST Ebf1 Pdyn Gaba,68
+114 COAa-PAA-MEA Barhl2 Glut,69
+175 SC Bnc2 Glut,70
+187 SCsg Pde5a Glut,71
+197 SNr Six3 Gaba,72
+204 SC Otx2 Gcnt4 Gaba,73
+205 SC-PAG Lef1 Emx2 Gaba,74
+207 SCs Dmbx1 Gaba,75
+208 SC Lef1 Otx2 Gaba,76
+209 SCs Pax7 Nfia Gaba,77
+211 SC Tnnt1 Gli3 Gaba,78
+212 SCs Lef1 Gli3 Gaba,79
+213 SCsg Gabrr2 Gaba,80
+278 NLL Gata3 Gly-Gaba,81
+308 DCO Il22 Gly-Gaba,82
+311 CBX MLI Megf11 Gaba,83
+314 CB Granule Glut,84
+318 Astro-NT NN,85
+319 Astro-TE NN,86
+320 Astro-OLF NN,87
+321 Astroependymal NN,88
+323 Ependymal NN,89
+325 CHOR NN,90
+326 OPC NN,91
+327 Oligo NN,92
+328 OEC NN,93
+329 ABC NN,94
+330 VLMC NN,95
+331 Peri NN,96
+332 SMC NN,97
+333 Endo NN,98
+334 Microglia NN,99
+335 BAM NN,100
+336 Monocytes NN,101
+337 DC NN,102
+338 Lymphoid NN,103

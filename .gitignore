@@ -1,0 +1,7 @@
+model_training_image_samples/
+logs/
+cache/
+.venv/
+resnet18/*
+desc.txt
+.DS_Store

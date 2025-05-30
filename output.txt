@@ -1,0 +1,5 @@
+Loading subclass_to_index from subclass_to_index_isocortex.csv
+Top predictions:
+Label 022 L5 ET CTX Glut, probability 0.1961
+Label 053 Sst Gaba, probability 0.1689
+Label 056 Sst Chodl Gaba, probability 0.1457
