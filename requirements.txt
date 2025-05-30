@@ -1,0 +1,27 @@
+# Core packages
+python==3.10
+pandas
+numpy
+matplotlib
+SimpleITK
+Pillow
+scikit-learn
+tqdm
+huggingface_hub
+
+# PyTorch (CPU by default; for GPU, install separately on local machine)
+torch
+torchvision
+torchaudio
+
+# I/O and Zarr
+ome-zarr
+zarr
+dask
+s3fs
+
+# Web app
+streamlit
+
+# Allen Brain Cell Atlas Access (from GitHub)
+abc_atlas_access[notebooks] @ git+https://github.com/alleninstitute/abc_atlas_access.git

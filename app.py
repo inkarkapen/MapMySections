@@ -87,7 +87,7 @@ def predict_from_s3_path(s3_path, model, index_to_label, top_k=3, device='cuda')
 
 
 # Load csv files
-model_path="./resnet18/best_brainscan3d_model__isocortex.pth"
+#model_path="./resnet18/best_brainscan3d_model__isocortex.pth"
 subclass_csv="subclass_to_index_isocortex.csv"
 test_csv = "MapMySections_TestData.csv"
 df = pd.read_csv(test_csv)
@@ -97,7 +97,16 @@ label_map = get_subclass_to_index_lookup(subclass_csv)
 index_to_label = {v: k for k, v in label_map.items()}
 num_classes = len(label_map)
 
-# Load model
+from huggingface_hub import hf_hub_download
+
+# Replace with your actual user/repo and filename
+model_path = hf_hub_download(
+    repo_id="InkarK/ResNet_18_3D_Brain",  # or "username/repo-name"
+    filename="best_brainscan3d_model__isocortex.pth"  # the exact filename
+)
+
+print("Model downloaded to:", model_path)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = get_model(num_classes, weights=None, device=device)
 model.load_state_dict(torch.load(model_path, map_location=device))
@@ -105,19 +114,43 @@ model.to(device)
 
 # SectionsId to s3 link look up
 section_to_s3 = dict(zip(df['MapMySectionsID'], df['STPT Data File Path']))
+s3_path = None
+thumbnail_url = None
 
 # Streamlit app layout
 st.title("Brain Scan 3D Section Inference")
+# Choose input mode
+mode = st.radio("Choose input method:", ["Select from list of Test Data", "Enter custom S3 path"])
 
-selected_section = st.selectbox("Select MapMySectionsID", sorted(section_to_s3.keys()))
+# If user wants to pick from the Test Data list
+if mode == "Select from list of Test Data":
+    selected_section = st.selectbox("Select MapMySectionsID", sorted(section_to_s3.keys()))
 
-if selected_section:
-    s3_path = section_to_s3[selected_section]
-    st.write(f"Running inference on S3 path:\n{s3_path}")
-    
-    with st.spinner("Predicting..."):
-        predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device=device)
-    
-    st.subheader("Top Predictions:")
-    for label, prob in predictions:
-        st.write(f"**{label}**: {prob:.4f}")
+    if selected_section:
+        # Filter the row corresponding to the selected ID
+        selected_row = df[df["MapMySectionsID"] == selected_section].iloc[0]
+        s3_path = selected_row['STPT Data File Path']
+        thumbnail_url = selected_row['STPT Thumbnail Image']
+
+# If user wants to input their own s3 and hope for the best
+elif mode == "Enter custom S3 path":
+    s3_path = st.text_input("Enter your S3 path here (e.g., s3://your-bucket/path/to/zarr/)")
+
+# If a valid S3 path is set, proceed with prediction
+if s3_path:
+    try:
+        st.write(f"Running inference on S3 path:\n{s3_path}")
+                
+        with st.spinner("Predicting..."):
+            predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device=device)
+
+        st.subheader("Top Predictions:")
+        for label, prob in predictions:
+            st.write(f"**{label}**: {prob:.4f}")
+
+        # Display the image from the 'STPT Thumbnail Image' column
+        if pd.notna(thumbnail_url):
+            st.image(thumbnail_url, caption=f"Thumbnail for {selected_section}",  width=500)
+    except Exception as e:
+        st.error(f"Failed to load S3 path: {s3_path}")
+        st.error("Try a different S3 URL")

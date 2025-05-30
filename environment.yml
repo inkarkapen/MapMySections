@@ -22,8 +22,8 @@ dependencies:
   - zarr
   - dask
   - s3fs
-  - monai
   - streamlit
+  - huggingface_hub
   - pip
   - pip:
       - "abc_atlas_access[notebooks] @ git+https://github.com/alleninstitute/abc_atlas_access.git"
