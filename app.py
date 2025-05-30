@@ -103,11 +103,6 @@ model = get_model(num_classes, weights=None, device=device)
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.to(device)
 
-uploaded_model = st.file_uploader(model_path, type=["pth"])
-if uploaded_model is not None:
-    model = torch.load(uploaded_model, map_location="cpu")
-    st.success("uploaded_model")
-
 # SectionsId to s3 link look up
 section_to_s3 = dict(zip(df['MapMySectionsID'], df['STPT Data File Path']))
 
