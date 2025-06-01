@@ -1,5 +1,5 @@
 # Core packages
-python==3.10
+python
 pandas
 numpy
 matplotlib
