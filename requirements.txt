@@ -1,5 +1,4 @@
 # Core packages
-python
 pandas
 numpy
 matplotlib
