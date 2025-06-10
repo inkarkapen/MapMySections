@@ -146,21 +146,22 @@ if s3_path:
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
 
         # Check if the selected section exists in the DataFrame
-        if selected_section and selected_section in pre_calc_test_predictions['MapMySectionsID'].values:
-            # Filter the row corresponding to selected_section
-            row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
-        
-            st.markdown("### Top Predictions (was pre-calculated using high resolution image):")
-        
-            # Extract top predictions
-            precalc_predictions = [
-                (row['top1_class'], row['top1_prob']),
-                (row['top2_class'], row['top2_prob']),
-                (row['top3_class'], row['top3_prob']),
-            ]
-        
-            precalc_predictions_df = pd.DataFrame(precalc_predictions, columns=["Label", "Probability"])
-            st.dataframe(precalc_predictions_df)
+        if selected_section 
+            if selected_section in pre_calc_test_predictions['MapMySectionsID'].values:
+                # Filter the row corresponding to selected_section
+                row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
+            
+                st.markdown("### Top Predictions (was pre-calculated using high resolution image):")
+            
+                # Extract top predictions
+                precalc_predictions = [
+                    (row['top1_class'], row['top1_prob']),
+                    (row['top2_class'], row['top2_prob']),
+                    (row['top3_class'], row['top3_prob']),
+                ]
+            
+                precalc_predictions_df = pd.DataFrame(precalc_predictions, columns=["Label", "Probability"])
+                st.dataframe(precalc_predictions_df)
             
         # Show real time predicted labels 
         st.markdown("### Top Predictions (computed real-time using low resolution image):")
