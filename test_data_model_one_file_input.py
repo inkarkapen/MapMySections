@@ -94,7 +94,7 @@ def predict_from_s3_path(s3_path, model, index_to_label, top_k=3, device='cuda')
 #model_path="./resnet18/best_brainscan3d_model__isocortex.pth"
 subclass_csv="subclass_to_index_isocortex.csv"
 test_csv = "MapMySections_TestData.csv"
-pre_calc_test_preditions = pd.read_csv("test_predictions.csv")
+pre_calc_test_predictions = pd.read_csv("test_predictions.csv")
 df = get_s3_test_data_lookup(test_csv)
 
 # Load labels look up table
