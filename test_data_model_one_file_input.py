@@ -124,7 +124,7 @@ mode = st.radio("***Choose input method:***", ["Select from list of Test Data", 
 
 # If user wants to pick from the Test Data list
 if mode == "Select from list of Test Data":
-    selected_section = st.selectbox("***Select MapMySectionsID***", sorted(section_to_s3.keys()))
+    selected_section = st.selectbox("***Select MapMySectionsID***", sorted(df["MapMySectionsID"].unique()))
 
     if selected_section:
         # Filter the row corresponding to the selected ID
