@@ -146,7 +146,7 @@ if s3_path:
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
 
         # Check if the selected section exists in the DataFrame
-        if selected_section 
+        if selected_section:
             if selected_section in pre_calc_test_predictions['MapMySectionsID'].values:
                 # Filter the row corresponding to selected_section
                 row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
