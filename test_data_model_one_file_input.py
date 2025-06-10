@@ -118,13 +118,13 @@ s3_path = None
 thumbnail_url = None
 
 # Streamlit app layout
-st.title("Brain Scan 3D Section Inference")
+st.title("3D Brain Scan Cell Type Inference")
 # Choose input mode
-mode = st.radio("Choose input method:", ["Select from list of Test Data", "Enter custom S3 path"])
+mode = st.radio("***Choose input method:***", ["Select from list of Test Data", "Enter custom S3 path"])
 
 # If user wants to pick from the Test Data list
 if mode == "Select from list of Test Data":
-    selected_section = st.selectbox("Select MapMySectionsID", sorted(df["MapMySectionsID"].unique()))
+    selected_section = st.selectbox("***Select MapMySectionsID***", sorted(section_to_s3.keys()))
 
     if selected_section:
         # Filter the row corresponding to the selected ID
@@ -139,7 +139,8 @@ elif mode == "Enter custom S3 path":
 # If a valid S3 path is set, proceed with prediction
 if s3_path:
     try:
-        st.write(f"Running inference on S3 path:\n{s3_path}")
+        st.write(f"Running inference on S3 path:")
+        st.write(f"{s3_path}")
                 
         with st.spinner("Predicting..."):
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
@@ -149,26 +150,28 @@ if s3_path:
             # Filter the row corresponding to selected_section
             row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
         
-            st.subheader("Top Predictions (was pre-calculated using high resolution image):")
+            st.markdown("### Top Predictions (was pre-calculated using high resolution image):")
         
             # Extract top predictions
-            top_predictions = [
+            precalc_predictions = [
                 (row['top1_class'], row['top1_prob']),
                 (row['top2_class'], row['top2_prob']),
                 (row['top3_class'], row['top3_prob']),
             ]
         
-            for label, prob in top_predictions:
-                st.write(f"**{label}**: {prob:.4f}")
-
-        # Show real time predicted labels 
-        st.subheader("Top Predictions (computed real-time using low resolution image):")
-        for label, prob in predictions:
-            st.write(f"**{label}**: {prob:.4f}")
+            precalc_predictions_df = pd.DataFrame(precalc_predictions, columns=["Label", "Probability"])
+            st.dataframe(precalc_predictions_df)
             
+        # Show real time predicted labels 
+        st.markdown("### Top Predictions (computed real-time using low resolution image):")
+        predictions_df = pd.DataFrame(predictions, columns=["Label", "Probability"])
+        st.dataframe(predictions_df)
+        
         # Display the image from the 'STPT Thumbnail Image' column
         if pd.notna(thumbnail_url):
+            st.subheader("Thumbnail Image:")
             st.image(thumbnail_url, caption=f"Thumbnail for {selected_section}",  width=500)
+            
     except Exception as e:
         st.error(f"Failed to load S3 path: {s3_path}")
         st.error(f"{e}")
