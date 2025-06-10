@@ -147,7 +147,7 @@ if s3_path:
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
 
         # Show real time predicted labels 
-        st.markdown("### Top Predictions (computed real-time using low resolution image):")
+        st.markdown("### Top Predictions:")
         predictions_df = pd.DataFrame(predictions, columns=["Label", "Probability"])
         st.dataframe(predictions_df)
         
