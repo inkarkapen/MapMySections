@@ -151,7 +151,7 @@ if s3_path:
             # Filter the row corresponding to selected_section
             row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
         
-            st.markdown("### Top Predictions (was pre-calculated using high resolution image):")
+            st.markdown("### Top Predictions (were pre-calculated using high resolution image on a gpu node):")
         
             # Extract top predictions
             precalc_predictions = [
