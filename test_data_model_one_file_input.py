@@ -8,9 +8,6 @@ import zarr
 import s3fs
 import streamlit as st
 
-import os
-import psutil
-import time
 
 # === Model ===
 def get_model(num_classes, weights=None, device='cuda'):
@@ -19,22 +16,6 @@ def get_model(num_classes, weights=None, device='cuda'):
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     model = model.to(device)
     return model
-
-
-def profile_block(name, func, *args, **kwargs):
-    process = psutil.Process(os.getpid())
-    start_mem = process.memory_info().rss / 1024**2  # MB
-    start_time = time.time()
-    
-    result = func(*args, **kwargs)
-    
-    end_time = time.time()
-    end_mem = process.memory_info().rss / 1024**2  # MB
-    
-    st.sidebar.write(f"⏱ {name} took {end_time - start_time:.2f}s")
-    st.sidebar.write(f"🧠 {name} used {end_mem - start_mem:.2f} MB more memory")
-    
-    return result
     
 # load
 @st.cache_resource
