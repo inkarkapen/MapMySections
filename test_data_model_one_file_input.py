@@ -1,21 +1,16 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
 from torchvision.models.video import r3d_18
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from ome_zarr.io import parse_url
-from ome_zarr.reader import Reader
-import dask.array as da
-from tqdm import tqdm
 from pathlib import Path
-import os
 import zarr
 import s3fs
 import streamlit as st
 
+import os
+import psutil
+import time
 
 # === Model ===
 def get_model(num_classes, weights=None, device='cuda'):
@@ -25,13 +20,44 @@ def get_model(num_classes, weights=None, device='cuda'):
     model = model.to(device)
     return model
 
+
+def profile_block(name, func, *args, **kwargs):
+    process = psutil.Process(os.getpid())
+    start_mem = process.memory_info().rss / 1024**2  # MB
+    start_time = time.time()
+    
+    result = func(*args, **kwargs)
+    
+    end_time = time.time()
+    end_mem = process.memory_info().rss / 1024**2  # MB
+    
+    st.sidebar.write(f"⏱ {name} took {end_time - start_time:.2f}s")
+    st.sidebar.write(f"🧠 {name} used {end_mem - start_mem:.2f} MB more memory")
+    
+    return result
+    
+# load
+@st.cache_resource
+def load_model(model_path, num_classes, device='cuda'):
+    model = get_model(num_classes, weights=None, device=device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
+    
 # Label mapping loader
+@st.cache_data
 def get_subclass_to_index_lookup(cache_path="subclass_to_index_isocortex.csv"):
     cache_path = Path(cache_path)
     print(f"Loading subclass_to_index from {cache_path}")
     df = pd.read_csv(cache_path)
     return dict(zip(df['subclass'], df['index']))
 
+@st.cache_data
+def get_s3_test_data_lookup(test_csv = "MapMySections_TestData.csv"):
+    df = pd.read_csv(test_csv, usecols=["MapMySectionsID", "STPT Data File Path", "STPT Thumbnail Image"])
+    return df
+    
 def normalize(img, clip=99.5):
     max_val = np.percentile(img, clip)
     if max_val < 1e-5:
@@ -42,11 +68,12 @@ def load_preprocess_volume(s3_path):
     fs = s3fs.S3FileSystem(anon=True)
     store = fs.get_mapper(s3_path)
     root = zarr.open(store, mode='r')
-    img_np = root['7'][:]  # (C, Z, Y, X)
+    img_np = root['8']  # (C, Z, Y, X)
 
     C, Z, Y, X = img_np.shape
-    rgb_volume = []
-
+    # Preallocate output array in float32
+    rgb_volume = np.empty((C, Z, Y, X), dtype=np.float16)
+    
     for z in range(Z):
         r = normalize(img_np[0, z])
         g = normalize(img_np[1, z])
@@ -55,20 +82,16 @@ def load_preprocess_volume(s3_path):
         gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
         green_mask = g > np.percentile(g, 99)
 
-        r_final = np.where(green_mask, 0.0, gray)
-        g_final = np.where(green_mask, g, gray)
-        b_final = np.where(green_mask, 0.0, gray)
+        # Apply conditional logic directly into preallocated array
+        rgb_volume[0, z] = np.where(green_mask, 0.0, gray)
+        rgb_volume[1, z] = np.where(green_mask, g, gray)
+        rgb_volume[2, z] = np.where(green_mask, 0.0, gray)
 
-        rgb = np.stack([r_final, g_final, b_final], axis=0)
-        rgb_volume.append(rgb)
-
-    rgb_volume = np.stack(rgb_volume, axis=1)  # (3, Z, H, W)
     tensor = torch.from_numpy(rgb_volume).float()
     return tensor
 
 def predict_from_s3_path(s3_path, model, index_to_label, top_k=3, device='cuda'):
-    model.eval()
-    input_tensor = load_preprocess_volume(s3_path).to(device)
+    input_tensor = load_preprocess_volume(s3_path)
 
     with torch.no_grad():
         input_tensor = input_tensor.unsqueeze(0)
@@ -90,7 +113,8 @@ def predict_from_s3_path(s3_path, model, index_to_label, top_k=3, device='cuda')
 #model_path="./resnet18/best_brainscan3d_model__isocortex.pth"
 subclass_csv="subclass_to_index_isocortex.csv"
 test_csv = "MapMySections_TestData.csv"
-df = pd.read_csv(test_csv)
+pre_calc_test_preditions = pd.read_csv("test_predictions.csv")
+df = get_s3_test_data_lookup(test_csv)
 
 # Load labels look up table
 label_map = get_subclass_to_index_lookup(subclass_csv)
@@ -101,19 +125,14 @@ from huggingface_hub import hf_hub_download
 
 # Replace with your actual user/repo and filename
 model_path = hf_hub_download(
-    repo_id="InkarK/ResNet_18_3D_Brain",  # or "username/repo-name"
-    filename="best_brainscan3d_model__isocortex.pth"  # the exact filename
+    repo_id="InkarK/ResNet_18_3D_Brain",
+    filename="best_brainscan3d_model__isocortex.pth"
 )
 
 print("Model downloaded to:", model_path)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = get_model(num_classes, weights=None, device=device)
-model.load_state_dict(torch.load(model_path, map_location=device))
-model.to(device)
-
-# SectionsId to s3 link look up
-section_to_s3 = dict(zip(df['MapMySectionsID'], df['STPT Data File Path']))
+model = load_model(model_path, num_classes, device='cpu')
+    
 s3_path = None
 thumbnail_url = None
 
@@ -124,7 +143,7 @@ mode = st.radio("Choose input method:", ["Select from list of Test Data", "Enter
 
 # If user wants to pick from the Test Data list
 if mode == "Select from list of Test Data":
-    selected_section = st.selectbox("Select MapMySectionsID", sorted(section_to_s3.keys()))
+    selected_section = st.selectbox("Select MapMySectionsID", sorted(df["MapMySectionsID"].unique()))
 
     if selected_section:
         # Filter the row corresponding to the selected ID
@@ -142,15 +161,34 @@ if s3_path:
         st.write(f"Running inference on S3 path:\n{s3_path}")
                 
         with st.spinner("Predicting..."):
-            predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device=device)
+            predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
 
-        st.subheader("Top Predictions:")
+        # Check if the selected section exists in the DataFrame
+        if selected_section and selected_section in pre_calc_test_predictions['MapMySectionsID'].values:
+            # Filter the row corresponding to selected_section
+            row = pre_calc_test_predictions[pre_calc_test_predictions['MapMySectionsID'] == selected_section].iloc[0]
+        
+            st.subheader("Top Predictions (was pre-calculated using high resolution image):")
+        
+            # Extract top predictions
+            top_predictions = [
+                (row['top1_class'], row['top1_prob']),
+                (row['top2_class'], row['top2_prob']),
+                (row['top3_class'], row['top3_prob']),
+            ]
+        
+            for label, prob in top_predictions:
+                st.write(f"**{label}**: {prob:.4f}")
+
+        # Show real time predicted labels 
+        st.subheader("Top Predictions (computed real-time using low resolution image):")
         for label, prob in predictions:
             st.write(f"**{label}**: {prob:.4f}")
-
+            
         # Display the image from the 'STPT Thumbnail Image' column
         if pd.notna(thumbnail_url):
             st.image(thumbnail_url, caption=f"Thumbnail for {selected_section}",  width=500)
     except Exception as e:
         st.error(f"Failed to load S3 path: {s3_path}")
+        st.error(f"{e}")
         st.error("Try a different S3 URL")
