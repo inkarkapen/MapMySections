@@ -36,7 +36,7 @@ def get_subclass_to_index_lookup(cache_path="subclass_to_index_isocortex.csv"):
 
 @st.cache_data
 def get_s3_test_data_lookup(test_csv = "MapMySections_TestData.csv"):
-    df = pd.read_csv(test_csv, usecols=["MapMySectionsID", "STPT Data File Path", "STPT Thumbnail Image"])
+    df = pd.read_csv(test_csv, usecols=["MapMySectionsID", "STPT Data File Path", "STPT Thumbnail Image", "Neuroglancer File Path"])
     return df
     
 def normalize(img, clip=99.5):
@@ -117,6 +117,7 @@ model = load_model(model_path, num_classes, device='cpu')
 s3_path = None
 thumbnail_url = None
 selected_section = None
+neuroglancer_link = None
 
 # Streamlit app layout
 st.title("3D Brain Scan Cell Type Inference")
@@ -132,6 +133,7 @@ if mode == "Select from list of Test Data":
         selected_row = df[df["MapMySectionsID"] == selected_section].iloc[0]
         s3_path = selected_row['STPT Data File Path']
         thumbnail_url = selected_row['STPT Thumbnail Image']
+        neuroglancer_link = selected_row['Neuroglancer File Path']
 
 # If user wants to input their own s3 and hope for the best
 elif mode == "Enter custom S3 path":
@@ -142,6 +144,11 @@ if s3_path:
     try:
         st.write(f"Running inference on S3 path:")
         st.write(f"{s3_path}")
+        
+        # Display the image from the 'Neuroglancer File Path' column
+        if pd.notna(neuroglancer_link):
+            st.write(f"Neuroglancer link to view the 3D image:")
+            st.write(f"{neuroglancer_link}")
                 
         with st.spinner("Predicting..."):
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
@@ -172,6 +179,7 @@ if s3_path:
         if pd.notna(thumbnail_url):
             st.subheader("Thumbnail Image:")
             st.image(thumbnail_url, caption=f"Thumbnail for {selected_section}",  width=500)
+            st.markdown(f"[Open full-resolution image]({neuroglancer_link})")
             
     except Exception as e:
         st.error(f"Failed to load S3 path: {s3_path}")
