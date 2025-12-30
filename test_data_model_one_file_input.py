@@ -120,7 +120,7 @@ selected_section = None
 neuroglancer_link = None
 
 # Streamlit app layout
-st.title("3D Brain Scan Cell Type Inference")
+st.title("New 3D Brain Scan Cell Type Inference")
 # Choose input mode
 mode = st.radio("***Choose input method:***", ["Select from list of Test Data", "Enter custom S3 path"])
 
