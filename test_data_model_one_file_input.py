@@ -147,8 +147,7 @@ if s3_path:
         
         # Display the image from the 'Neuroglancer File Path' column
         if pd.notna(neuroglancer_link):
-            st.write(f"Neuroglancer link to view the 3D image:")
-            st.write(f"{neuroglancer_link}")
+            st.markdown(f"[Neuroglancer link to view the 3D image]({neuroglancer_link})")
                 
         with st.spinner("Predicting..."):
             predictions = predict_from_s3_path(s3_path, model, index_to_label=index_to_label, top_k=3, device='cpu')
